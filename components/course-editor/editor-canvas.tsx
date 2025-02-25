@@ -63,10 +63,10 @@ function WidgetRenderer({
   }
 
   return (
-    <div className="relative">
+    <div className="rounded-lg border bg-card relative">
       {isHovering && (
         <DropZone 
-          className="absolute -top-2 left-0 right-0 h-4 z-10"
+          className="absolute -top-2 left-0 right-0 h-4"
           isInternal
           onDrop={(e) => {
             e.stopPropagation()
@@ -74,12 +74,10 @@ function WidgetRenderer({
           }}
         />
       )}
-      <div className="rounded-lg border bg-card p-4">
-        {content()}
-      </div>
+      {content()}
       {isHovering && (
         <DropZone 
-          className="absolute -bottom-2 left-0 right-0 h-4 z-10"
+          className="absolute -bottom-2 left-0 right-0 h-4"
           isInternal
           onDrop={(e) => {
             e.stopPropagation()

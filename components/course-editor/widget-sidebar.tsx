@@ -32,8 +32,12 @@ function WidgetCategory({ title, items }: { title: string; items: WidgetItem[] }
   const handleDragStart = (e: React.DragEvent, widget: WidgetItem) => {
     console.log("Starting drag for widget:", widget.name)
     
-    // Remove the icon before serializing
-    const { icon, ...widgetWithoutIcon } = widget
+    // Create a new object without the icon property
+    const widgetWithoutIcon = {
+      name: widget.name,
+      description: widget.description,
+      type: widget.type
+    }
     const data = JSON.stringify(widgetWithoutIcon)
     console.log("Setting drag data:", data)
     

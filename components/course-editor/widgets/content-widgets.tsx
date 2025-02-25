@@ -51,8 +51,8 @@ export function IconWidget({
   icon = 'Info',
   text = 'Icons are a powerful way to enhance your content. They can help guide attention, provide visual cues, and make your content more engaging. This icon widget allows you to combine meaningful icons with descriptive text.',
   iconSize = 48,
-  iconColor = '#000000',
-  backgroundColor = 'transparent',
+  iconColor = '#2563eb',
+  backgroundColor = '#f0f7ff',
   textColor = '#000000',
   layout = 'left',
   onUpdate
@@ -84,25 +84,27 @@ export function IconWidget({
   const containerStyles = {
     backgroundColor: currentBgColor,
     color: currentTextColor,
-    padding: '1rem',
-    borderRadius: '0.5rem',
-    transition: 'background-color 0.2s ease',
-    display: 'block',
+    minHeight: 'fit-content',
+    height: '100%',
     width: '100%',
+    transition: 'background-color 0.2s ease',
   }
 
   const contentStyles = {
     display: 'flex',
     gap: '1rem',
+    padding: '2rem 1rem',
     flexDirection: currentLayout === 'top' || currentLayout === 'bottom' ? 'column' : 'row',
     alignItems: currentLayout === 'top' || currentLayout === 'bottom' ? 'center' : 'flex-start',
+    height: '100%',
+    width: '100%',
     ...(currentLayout === 'right' && { flexDirection: 'row-reverse' }),
     ...(currentLayout === 'bottom' && { flexDirection: 'column-reverse' }),
   }
 
   return (
     <WidgetCard onEdit={() => setIsEditing(true)}>
-      <div style={containerStyles}>
+      <div style={containerStyles} className="overflow-hidden">
         <div style={contentStyles as React.CSSProperties}>
           <div className="flex-shrink-0 flex items-center justify-center">
             <Icon
@@ -112,7 +114,7 @@ export function IconWidget({
             />
           </div>
           <div
-            className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+            className="flex-grow prose prose-sm max-w-none"
             style={{ color: 'inherit' }}
             dangerouslySetInnerHTML={{ __html: content }}
           />
@@ -125,8 +127,8 @@ export function IconWidget({
           </SheetHeader>
           <div className="space-y-6 mt-6">
             <div className="space-y-4">
-              <Label>Icon</Label>
               <div>
+                <Label className="block mb-2">Icon</Label>
                 <IconPicker value={selectedIcon} onChange={setSelectedIcon} />
               </div>
             </div>
@@ -143,10 +145,7 @@ export function IconWidget({
                 <SelectContent>
                   {Object.entries(iconSizes).map(([size, value]) => (
                     <SelectItem key={size} value={value.toString()}>
-                      {size === 'sm' ? 'Small' : 
-                       size === 'md' ? 'Medium' : 
-                       size === 'lg' ? 'Large' : 
-                       'Extra Large'} - {value}px
+                      {size.toUpperCase()} - {value}px
                     </SelectItem>
                   ))}
                 </SelectContent>
