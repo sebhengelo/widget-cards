@@ -7,7 +7,11 @@ import { IconPicker } from "../../course-editor/icon-picker"
 import { RichTextEditor } from '../rich-text-editor'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { icons } from 'lucide-react'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { library } from "@fortawesome/fontawesome-svg-core"
+import { fas } from "@fortawesome/free-solid-svg-icons"
+import { far } from "@fortawesome/free-regular-svg-icons"
+import { fab } from "@fortawesome/free-brands-svg-icons"
 import {
   Select,
   SelectContent,
@@ -17,6 +21,10 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { IconPrefix, IconName } from "@fortawesome/fontawesome-svg-core"
+
+// Add all icons to the library
+library.add(fas, far, fab)
 
 interface IconWidgetProps {
   icon?: string
@@ -37,185 +45,225 @@ interface IconWidgetProps {
   }) => void
 }
 
-const iconSizes = {
-  sm: 32,
-  md: 48,
-  lg: 64,
-  xl: 96,
-} as const
-
-type IconKey = keyof typeof icons
-type Layout = NonNullable<IconWidgetProps['layout']>
-
 export function IconWidget({
-  icon = 'Info',
-  text = 'Icons are a powerful way to enhance your content. They can help guide attention, provide visual cues, and make your content more engaging. This icon widget allows you to combine meaningful icons with descriptive text.',
-  iconSize = 48,
-  iconColor = '#2563eb',
-  backgroundColor = '#f0f7ff',
-  textColor = '#000000',
-  layout = 'left',
+  icon = "fas fa-circle-info",
+  text = "This is an icon widget with some text next to it. You can edit this text and change the icon.",
+  iconSize = 24,
+  iconColor = "#3b82f6",
+  backgroundColor = "#dbeafe",
+  textColor = "#000000",
+  layout = "left",
   onUpdate
 }: IconWidgetProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [selectedIcon, setSelectedIcon] = useState(icon)
-  const [content, setContent] = useState(text)
+  const [iconText, setIconText] = useState(text)
   const [currentIconSize, setCurrentIconSize] = useState(iconSize)
   const [currentIconColor, setCurrentIconColor] = useState(iconColor)
-  const [currentBgColor, setCurrentBgColor] = useState(backgroundColor)
+  const [currentBackgroundColor, setCurrentBackgroundColor] = useState(backgroundColor)
   const [currentTextColor, setCurrentTextColor] = useState(textColor)
-  const [currentLayout, setCurrentLayout] = useState<Layout>(layout)
+  const [currentLayout, setCurrentLayout] = useState<'left' | 'top' | 'right' | 'bottom'>(layout)
 
   const handleSave = () => {
-    onUpdate?.({
-      icon: selectedIcon,
-      text: content,
-      iconSize: currentIconSize,
-      iconColor: currentIconColor,
-      backgroundColor: currentBgColor,
-      textColor: currentTextColor,
-      layout: currentLayout
-    })
+    if (onUpdate) {
+      onUpdate({
+        icon: selectedIcon,
+        text: iconText,
+        iconSize: currentIconSize,
+        iconColor: currentIconColor,
+        backgroundColor: currentBackgroundColor,
+        textColor: currentTextColor,
+        layout: currentLayout
+      })
+    }
     setIsEditing(false)
   }
 
-  const Icon = icons[selectedIcon as IconKey] || icons.Info
-
   const containerStyles = {
-    backgroundColor: currentBgColor,
+    backgroundColor: currentBackgroundColor,
     color: currentTextColor,
-    minHeight: 'fit-content',
-    height: '100%',
     width: '100%',
-    transition: 'background-color 0.2s ease',
+    height: '100%',
+    overflow: 'hidden',
   }
 
   const contentStyles = {
-    display: 'flex',
+    display: 'flex' as const,
     gap: '1rem',
     padding: '2rem 1rem',
-    flexDirection: currentLayout === 'top' || currentLayout === 'bottom' ? 'column' : 'row',
-    alignItems: currentLayout === 'top' || currentLayout === 'bottom' ? 'center' : 'flex-start',
+    flexDirection: currentLayout === 'top' || currentLayout === 'bottom' 
+      ? 'column' as const 
+      : 'row' as const,
+    alignItems: currentLayout === 'top' || currentLayout === 'bottom' 
+      ? 'center' as const 
+      : 'flex-start' as const,
     height: '100%',
     width: '100%',
-    ...(currentLayout === 'right' && { flexDirection: 'row-reverse' }),
-    ...(currentLayout === 'bottom' && { flexDirection: 'column-reverse' }),
+    ...(currentLayout === 'right' && { flexDirection: 'row-reverse' as const }),
+    ...(currentLayout === 'bottom' && { flexDirection: 'column-reverse' as const }),
+  }
+
+  // Parse the icon string into prefix and name
+  const getIconDetails = (iconString: string) => {
+    if (!iconString) return { prefix: "fas", iconName: "circle-info" }
+    
+    const parts = iconString.split(" ")
+    if (parts.length !== 2) return { prefix: "fas", iconName: "circle-info" }
+    
+    // Handle fa- prefix in the iconName part
+    let iconName = parts[1]
+    if (iconName.startsWith("fa-")) {
+      iconName = iconName.substring(3)
+    }
+    
+    return {
+      prefix: parts[0],
+      iconName: iconName
+    }
+  }
+  
+  const iconDetails = getIconDetails(selectedIcon)
+
+  // Function to safely render the icon
+  const renderIcon = () => {
+    try {
+      return (
+        <FontAwesomeIcon 
+          icon={[iconDetails.prefix as IconPrefix, iconDetails.iconName as IconName]} 
+          style={{ width: `${currentIconSize}px`, height: `${currentIconSize}px` }}
+        />
+      )
+    } catch (error) {
+      console.error("Error rendering icon:", error)
+      return (
+        <FontAwesomeIcon 
+          icon={["fas" as IconPrefix, "circle-info" as IconName]} 
+          style={{ width: `${currentIconSize}px`, height: `${currentIconSize}px` }}
+        />
+      )
+    }
   }
 
   return (
     <WidgetCard onEdit={() => setIsEditing(true)}>
       <div style={containerStyles} className="overflow-hidden">
-        <div style={contentStyles as React.CSSProperties}>
-          <div className="flex-shrink-0 flex items-center justify-center">
-            <Icon
-              style={{ color: currentIconColor }}
-              width={currentIconSize}
-              height={currentIconSize}
-            />
+        <div style={contentStyles}>
+          <div style={{ 
+            fontSize: `${currentIconSize}px`, 
+            color: currentIconColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            {renderIcon()}
           </div>
-          <div
-            className="flex-grow prose prose-sm max-w-none"
-            style={{ color: 'inherit' }}
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
+          <div style={{ flex: 1 }} dangerouslySetInnerHTML={{ __html: iconText }} />
         </div>
       </div>
+
       <Sheet open={isEditing} onOpenChange={setIsEditing}>
-        <SheetContent>
+        <SheetContent className="sm:max-w-md">
           <SheetHeader>
             <SheetTitle>Edit Icon Widget</SheetTitle>
           </SheetHeader>
-          <div className="space-y-6 mt-6">
-            <div className="space-y-4">
-              <div>
-                <Label className="block mb-2">Icon</Label>
-                <IconPicker value={selectedIcon} onChange={setSelectedIcon} />
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="icon">Icon</Label>
+              <IconPicker 
+                value={selectedIcon} 
+                onChange={setSelectedIcon} 
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="iconSize">Icon Size</Label>
+              <Input 
+                id="iconSize" 
+                type="number" 
+                value={currentIconSize} 
+                onChange={(e) => setCurrentIconSize(Number(e.target.value))} 
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="iconColor">Icon Color</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="iconColor" 
+                  type="color" 
+                  value={currentIconColor} 
+                  onChange={(e) => setCurrentIconColor(e.target.value)} 
+                  className="w-12 p-1 h-10"
+                />
+                <Input 
+                  type="text" 
+                  value={currentIconColor} 
+                  onChange={(e) => setCurrentIconColor(e.target.value)} 
+                  className="flex-1"
+                />
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label>Icon Size</Label>
-              <Select
-                value={currentIconSize.toString()}
-                onValueChange={(value: string) => setCurrentIconSize(Number(value))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select size" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(iconSizes).map(([size, value]) => (
-                    <SelectItem key={size} value={value.toString()}>
-                      {size.toUpperCase()} - {value}px
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid gap-2">
+              <Label htmlFor="backgroundColor">Background Color</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="backgroundColor" 
+                  type="color" 
+                  value={currentBackgroundColor} 
+                  onChange={(e) => setCurrentBackgroundColor(e.target.value)} 
+                  className="w-12 p-1 h-10"
+                />
+                <Input 
+                  type="text" 
+                  value={currentBackgroundColor} 
+                  onChange={(e) => setCurrentBackgroundColor(e.target.value)} 
+                  className="flex-1"
+                />
+              </div>
             </div>
-
-            <div className="space-y-2">
-              <Label>Layout</Label>
-              <Select
-                value={currentLayout}
-                onValueChange={(value: Layout) => setCurrentLayout(value)}
+            <div className="grid gap-2">
+              <Label htmlFor="textColor">Text Color</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="textColor" 
+                  type="color" 
+                  value={currentTextColor} 
+                  onChange={(e) => setCurrentTextColor(e.target.value)} 
+                  className="w-12 p-1 h-10"
+                />
+                <Input 
+                  type="text" 
+                  value={currentTextColor} 
+                  onChange={(e) => setCurrentTextColor(e.target.value)} 
+                  className="flex-1"
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="layout">Layout</Label>
+              <Select 
+                value={currentLayout} 
+                onValueChange={(value) => setCurrentLayout(value as 'left' | 'top' | 'right' | 'bottom')}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select layout" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="left">Left</SelectItem>
-                  <SelectItem value="top">Top</SelectItem>
-                  <SelectItem value="right">Right</SelectItem>
-                  <SelectItem value="bottom">Bottom</SelectItem>
+                  <SelectItem value="left">Icon Left</SelectItem>
+                  <SelectItem value="right">Icon Right</SelectItem>
+                  <SelectItem value="top">Icon Top</SelectItem>
+                  <SelectItem value="bottom">Icon Bottom</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>Icon Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={currentIconColor}
-                    onChange={(e) => setCurrentIconColor(e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Background</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={currentBgColor === 'transparent' ? '#ffffff' : currentBgColor}
-                    onChange={(e) => setCurrentBgColor(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Text Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={currentTextColor}
-                    onChange={(e) => setCurrentTextColor(e.target.value)}
-                  />
-                </div>
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="text">Text Content</Label>
+              <RichTextEditor 
+                content={iconText} 
+                onChange={setIconText} 
+              />
             </div>
-
-            <div className="space-y-2">
-              <Label>Content</Label>
-              <RichTextEditor content={content} onChange={setContent} />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave}>Save</Button>
-            </div>
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button onClick={handleSave}>Save Changes</Button>
           </div>
         </SheetContent>
       </Sheet>
